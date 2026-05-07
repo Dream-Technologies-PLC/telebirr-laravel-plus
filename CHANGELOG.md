@@ -1,3 +1,7 @@
+## 0.1.3
+
+* Fixes CI by removing the empty feature test suite from PHPUnit configuration.
+
 ## 0.1.2
 
 * Updates the root `skills.md` guide with integration prerequisites and required developer actions.
