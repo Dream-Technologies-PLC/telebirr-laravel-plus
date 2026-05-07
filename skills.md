@@ -1,32 +1,35 @@
 # skills.md
 
-Use this file as AI coding instructions when integrating or modifying
+Copy this file into an existing Laravel application to guide an AI coding
+assistant while adding Telebirr backend support with
 `dream-technologies/telebirr-laravel-plus`.
 
-## Package Role
+This file is only for adding Telebirr payments to an existing Laravel app.
 
-This Laravel package is the secure backend companion for
-`telebirr_inapp_purchase_plus`.
+## Goal
 
-It owns:
+Add a secure Telebirr InApp backend to the current Laravel app.
 
-- Fabric Token requests
-- RSA signing
-- Create Order requests
-- Query Order requests
-- notify_url callback route
-- Backend-only Telebirr credentials
+The Laravel app must:
 
-Flutter must only receive `receiveCode` and safe order status fields.
+1. Keep Telebirr credentials on the backend.
+2. Create Telebirr InApp orders.
+3. Return `receiveCode` to Flutter.
+4. Receive Telebirr `notify_url` callbacks.
+5. Query Telebirr when final payment confirmation is needed.
 
-## Install Flow
+## Install
 
 ```bash
 composer require dream-technologies/telebirr-laravel-plus
 php artisan vendor:publish --tag=telebirr-config
 ```
 
-Required `.env` values:
+`vendor:publish` here only copies the Laravel config file into the existing app.
+
+## Environment Variables
+
+Add to the Laravel app `.env`:
 
 ```env
 TELEBIRR_ENV=test
@@ -39,9 +42,11 @@ TELEBIRR_NOTIFY_URL=https://yourdomain.com/api/telebirr/notify
 TELEBIRR_VERIFY_SSL=true
 ```
 
-## Routes
+Store the private key outside `public/`.
 
-Built-in routes:
+## Built-In Routes
+
+The package registers:
 
 ```text
 POST /api/telebirr/create-order
@@ -49,7 +54,13 @@ POST /api/telebirr/query-order
 POST /api/telebirr/notify
 ```
 
-Create-order request:
+Flutter should call:
+
+```text
+POST /api/telebirr/create-order
+```
+
+with:
 
 ```json
 {
@@ -58,65 +69,64 @@ Create-order request:
 }
 ```
 
-Create-order response:
+## Existing System Integration
 
-```json
+If the Laravel app already has orders, checkout, or ride/payment tables:
+
+1. Create the local order first.
+2. Call Telebirr create-order.
+3. Save `merchantOrderId` with the local order.
+4. Return `receiveCode` to Flutter.
+5. On notify callback, update the local order status.
+6. Use query-order when callback is delayed or payment state is unclear.
+
+For custom checkout controllers, inject the client:
+
+```php
+use DreamTechnologies\TelebirrLaravelPlus\Contracts\TelebirrClient;
+use DreamTechnologies\TelebirrLaravelPlus\DTO\CreateOrderData;
+
+public function checkout(TelebirrClient $telebirr)
 {
-  "success": true,
-  "merchantOrderId": "ORDER_ID",
-  "receiveCode": "TELEBIRR$BUYGOODS$YOUR_SHORT_CODE$12.00$PREPAY_ID$120m",
-  "message": "success"
+    $order = $telebirr->createOrder(new CreateOrderData(
+        title: 'Example order',
+        amount: '12.00',
+    ));
+
+    return response()->json($order->toArray());
 }
 ```
 
+## Notify Callback
+
+Listen for:
+
+```php
+DreamTechnologies\TelebirrLaravelPlus\Events\TelebirrNotificationReceived
+```
+
+Use that event to update app-specific order/payment records.
+
 ## Security Rules
 
-- Never commit `.env` with real credentials.
-- Never commit private keys.
-- Never expose App Secret, private key, or Fabric Token to Flutter.
-- Store private keys outside `public/`.
+- Do not expose App Secret or private key to Flutter.
+- Do not commit `.env`.
+- Do not commit private keys.
+- Use HTTPS for production `TELEBIRR_NOTIFY_URL`.
 - Use `TELEBIRR_VERIFY_SSL=true` in production.
-- Use HTTPS for `TELEBIRR_NOTIFY_URL` in production.
-- Confirm final payment on the backend using `notify_url` and/or `queryOrder`.
+- Do not trust Flutter callback as final payment confirmation.
+- Confirm final payment through backend notify callback or query-order.
 
-## Coding Rules
+## Local Testing
 
-- Keep payment request DTOs strongly typed.
-- Keep response shape stable for Flutter:
-  `success`, `merchantOrderId`, `receiveCode`, `code`, `message`, `raw`.
-- Keep Telebirr API errors readable.
-- Do not swallow Telebirr error codes such as `60200098`.
-- Dispatch `TelebirrNotificationReceived` from notify callbacks.
-
-## Testing Checklist
-
-Before release:
+Run Laravel:
 
 ```bash
-composer validate --strict
-find src config routes tests -name '*.php' -print0 | xargs -0 -n1 php -l
-composer test
+php artisan serve --host=0.0.0.0 --port=8001
 ```
 
-Scan for secrets:
-
-```bash
-rg "APP_SECRET|PRIVATE_KEY|MIIE|TELEBIRR_APP_SECRET|real_merchant"
-```
-
-## Packagist Release
-
-Versions come from git tags:
-
-```bash
-git tag v0.1.1
-git push origin main
-git push origin v0.1.1
-```
-
-Packagist package:
+From Flutter on a real phone, use LAN IP, not `localhost`:
 
 ```text
-dream-technologies/telebirr-laravel-plus
+http://192.168.x.x:8001/api/telebirr/create-order
 ```
-
