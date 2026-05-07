@@ -1,3 +1,7 @@
+## 0.1.1
+
+* Adds an integration-focused `skills.md` guide link for AI-assisted Laravel setup.
+
 ## 0.1.0
 
 * Initial production-ready Laravel backend package for Telebirr InApp Purchase.

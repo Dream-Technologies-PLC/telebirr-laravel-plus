@@ -5,6 +5,11 @@ Production-ready Laravel backend package for Telebirr InApp Purchase in Ethiopia
 GitHub:
 [Dream-Technologies-PLC/telebirr-laravel-plus](https://github.com/Dream-Technologies-PLC/telebirr-laravel-plus)
 
+Using an AI coding assistant to integrate this package into your existing
+Laravel app? Add or reference [skills.md](skills.md) first so the assistant asks
+for the required Telebirr credentials, private key location, notify URL,
+existing order model, and checkout controller before changing code.
+
 It is built to pair with the Flutter package:
 
 - [telebirr_inapp_purchase_plus on pub.dev](https://pub.dev/packages/telebirr_inapp_purchase_plus)
