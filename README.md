@@ -2,6 +2,9 @@
 
 Production-ready Laravel backend package for Telebirr InApp Purchase in Ethiopia.
 
+GitHub:
+[Dream-Technologies-PLC/telebirr-laravel-plus](https://github.com/Dream-Technologies-PLC/telebirr-laravel-plus)
+
 It is built to pair with the Flutter package:
 
 - [telebirr_inapp_purchase_plus on pub.dev](https://pub.dev/packages/telebirr_inapp_purchase_plus)
@@ -58,6 +61,8 @@ final result = await Telebirr.pay(receiveCode: receiveCodeFromLaravel);
 ```bash
 composer require dream-technologies/telebirr-laravel-plus
 ```
+
+This package is published for Laravel through [Packagist](https://packagist.org/), the Composer package registry. Packagist is the Laravel/PHP equivalent of pub.dev for Flutter packages.
 
 Publish config:
 
