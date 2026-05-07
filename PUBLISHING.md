@@ -41,12 +41,28 @@ https://github.com/Dream-Technologies-PLC/telebirr-laravel-plus
 
 Packagist can auto-update when GitHub tags are pushed.
 
-Recommended setup:
+This repository includes:
+
+```text
+.github/workflows/packagist-update.yml
+```
+
+Add these GitHub repository secrets:
+
+```text
+PACKAGIST_USERNAME
+PACKAGIST_TOKEN
+```
+
+Use the Packagist **safe API token** for `PACKAGIST_TOKEN`. The safe token is enough for package update webhooks.
+
+Recommended Packagist setup:
 
 1. Open the package page on Packagist.
 2. Go to package settings.
-3. Enable GitHub hook or connect GitHub integration.
-4. Push release tags from this repository.
+3. Submit the GitHub repository URL if this is the first publish.
+4. Add the GitHub secrets listed above.
+5. Push `main`, push a release tag, or run **Update Packagist** manually from GitHub Actions.
 
 ## Release A New Version
 
@@ -80,4 +96,4 @@ This repository includes GitHub Actions CI:
 
 CI runs on push and pull requests. It validates Composer metadata, installs dependencies, checks PHP syntax, and runs tests across supported PHP/Laravel versions.
 
-Packagist publishing itself does not require uploading a build artifact. Packagist reads this public GitHub repository and release tags.
+Packagist publishing itself does not require uploading a build artifact. Packagist reads this public GitHub repository and release tags. The `Update Packagist` workflow only asks Packagist to refresh the package metadata.

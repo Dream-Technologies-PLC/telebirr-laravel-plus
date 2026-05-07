@@ -1,0 +1,26 @@
+name: Update Packagist
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  update-packagist:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Packagist
+        env:
+          PACKAGIST_USERNAME: ${{ secrets.PACKAGIST_USERNAME }}
+          PACKAGIST_TOKEN: ${{ secrets.PACKAGIST_TOKEN }}
+          PACKAGIST_REPOSITORY_URL: https://github.com/Dream-Technologies-PLC/telebirr-laravel-plus
+        run: |
+          test -n "$PACKAGIST_USERNAME"
+          test -n "$PACKAGIST_TOKEN"
+          curl --fail-with-body \
+            --request POST \
+            --header "Content-Type: application/json" \
+            --data "{\"repository\":{\"url\":\"$PACKAGIST_REPOSITORY_URL\"}}" \
+            "https://packagist.org/api/update-package?username=$PACKAGIST_USERNAME&apiToken=$PACKAGIST_TOKEN"
