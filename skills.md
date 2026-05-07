@@ -1,10 +1,49 @@
 # skills.md
 
+## Best Package Description
+
+`dream-technologies/telebirr-laravel-plus` is the Laravel backend package for
+Telebirr InApp Purchase. Use it inside an existing Laravel app to securely
+apply Fabric Token, sign requests, create orders, receive notify callbacks, and
+return `receiveCode` to a Flutter app.
+
 Copy this file into an existing Laravel application to guide an AI coding
 assistant while adding Telebirr backend support with
 `dream-technologies/telebirr-laravel-plus`.
 
 This file is only for adding Telebirr payments to an existing Laravel app.
+
+## AI Must Ask First
+
+Before changing code, ask the developer for these values:
+
+- Target environment: `test` or `production`.
+- Fabric App ID.
+- Merchant App ID.
+- Business Short Code.
+- App Secret storage location.
+- Private key file location.
+- Public HTTPS notify URL for production.
+- Existing order/payment model names.
+- Existing checkout route or controller.
+- Whether built-in package routes should be used or custom app routes are preferred.
+
+Also confirm:
+
+- Organization and product contract are approved in the Ethio Telecom developer portal.
+- The private key is stored outside `public/`.
+- The backend will persist local order/payment status.
+- Flutter will only receive `receiveCode` and safe order fields.
+
+## Developer Actions Before AI Starts
+
+The developer must:
+
+- Add Telebirr credentials to `.env`, not source code.
+- Place the private key in a backend-only path.
+- Decide the local order/payment status names.
+- Decide whether to use package routes or call `TelebirrClient` from existing controllers.
+- Provide the Flutter app team with the create-order URL.
 
 ## Goal
 
