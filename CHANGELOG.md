@@ -1,3 +1,7 @@
+## 0.1.2
+
+* Updates the root `skills.md` guide with integration prerequisites and required developer actions.
+
 ## 0.1.1
 
 * Adds an integration-focused `skills.md` guide link for AI-assisted Laravel setup.
