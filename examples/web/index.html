@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Telebirr Laravel Plus Local Test</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5fbf9;
+      --panel: #ffffff;
+      --text: #172522;
+      --muted: #586a65;
+      --line: #c8d8d4;
+      --brand: #007d6d;
+      --brand-dark: #005f53;
+      --danger: #b3261e;
+      --ok: #0b6b3a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main {
+      width: min(920px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      font-weight: 750;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+    }
+
+    label {
+      display: block;
+      margin: 0 0 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    input,
+    textarea {
+      display: block;
+      width: 100%;
+      margin-top: 6px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 12px;
+      color: var(--text);
+      font: inherit;
+      background: #fbfffd;
+    }
+
+    textarea {
+      min-height: 132px;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      background: var(--brand);
+      color: #fff;
+      font: inherit;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--brand-dark);
+    }
+
+    button.secondary {
+      background: #d9efeb;
+      color: #0d2d28;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .status {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      background: #fbfffd;
+      color: var(--muted);
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .status.ok {
+      border-color: #89c7a4;
+      color: var(--ok);
+    }
+
+    .status.error {
+      border-color: #f1a49e;
+      color: var(--danger);
+    }
+
+    @media (max-width: 760px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Telebirr Laravel Plus Local Test</h1>
+  <p>Create a Telebirr InApp order from your Laravel backend, then use the returned receiveCode in the Flutter app.</p>
+
+  <div class="grid">
+    <section>
+      <label>
+        Backend create-order URL
+        <input id="backendUrl" value="http://127.0.0.1:8001/api/telebirr/create-order">
+      </label>
+
+      <label>
+        Title
+        <input id="title" value="Local HTML test order">
+      </label>
+
+      <label>
+        Amount
+        <input id="amount" value="12.00" inputmode="decimal">
+      </label>
+
+      <div class="actions">
+        <button id="createOrder">Create Order</button>
+        <button class="secondary" id="copyReceiveCode" type="button">Copy receiveCode</button>
+      </div>
+
+      <div id="status" class="status">Ready.</div>
+    </section>
+
+    <section>
+      <label>
+        Merchant order ID
+        <input id="merchantOrderId" readonly>
+      </label>
+
+      <label>
+        Receive code
+        <textarea id="receiveCode" readonly></textarea>
+      </label>
+
+      <label>
+        Flutter usage
+        <textarea id="flutterSnippet" readonly></textarea>
+      </label>
+
+      <div class="actions">
+        <button class="secondary" id="copyFlutter" type="button">Copy Flutter snippet</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+  const el = {
+    backendUrl: document.querySelector('#backendUrl'),
+    title: document.querySelector('#title'),
+    amount: document.querySelector('#amount'),
+    createOrder: document.querySelector('#createOrder'),
+    copyReceiveCode: document.querySelector('#copyReceiveCode'),
+    copyFlutter: document.querySelector('#copyFlutter'),
+    merchantOrderId: document.querySelector('#merchantOrderId'),
+    receiveCode: document.querySelector('#receiveCode'),
+    flutterSnippet: document.querySelector('#flutterSnippet'),
+    status: document.querySelector('#status'),
+  };
+
+  function showStatus(message, type = '') {
+    el.status.className = `status ${type}`.trim();
+    el.status.textContent = typeof message === 'string'
+      ? message
+      : JSON.stringify(message, null, 2);
+  }
+
+  function updateFlutterSnippet() {
+    el.flutterSnippet.value = `await Telebirr.initialize(
+  appId: 'YOUR_MERCHANT_APP_ID',
+  shortCode: 'YOUR_SHORT_CODE',
+  returnScheme: 'yourappscheme',
+  environment: TelebirrEnvironment.test,
+);
+
+final result = await Telebirr.pay(
+  receiveCode: '${el.receiveCode.value}',
+);`;
+  }
+
+  async function createOrder() {
+    el.createOrder.disabled = true;
+    showStatus('Creating order...');
+
+    try {
+      const response = await fetch(el.backendUrl.value.trim(), {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: el.title.value.trim(),
+          amount: el.amount.value.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || data.success === false) {
+        throw new Error(data.message || `Request failed with status ${response.status}`);
+      }
+
+      el.merchantOrderId.value = data.merchantOrderId || '';
+      el.receiveCode.value = data.receiveCode || '';
+      updateFlutterSnippet();
+      showStatus(data, 'ok');
+    } catch (error) {
+      showStatus(error.message, 'error');
+    } finally {
+      el.createOrder.disabled = false;
+    }
+  }
+
+  async function copy(value, label) {
+    if (!value) {
+      showStatus(`Nothing to copy for ${label}.`, 'error');
+      return;
+    }
+
+    await navigator.clipboard.writeText(value);
+    showStatus(`${label} copied.`, 'ok');
+  }
+
+  el.createOrder.addEventListener('click', createOrder);
+  el.copyReceiveCode.addEventListener('click', () => copy(el.receiveCode.value, 'receiveCode'));
+  el.copyFlutter.addEventListener('click', () => copy(el.flutterSnippet.value, 'Flutter snippet'));
+  updateFlutterSnippet();
+</script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+{
+  "name": "dream-technologies/telebirr-laravel-plus",
+  "description": "Production-ready Laravel backend package for Telebirr InApp Purchase, aligned with telebirr_inapp_purchase_plus Flutter SDK.",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "telebirr",
+    "ethiotelecom",
+    "laravel",
+    "payment",
+    "inapp",
+    "flutter",
+    "ethiopia"
+  ],
+  "homepage": "https://github.com/Dream-Technologies-PLC/telebirr_laravel_plus",
+  "support": {
+    "issues": "https://github.com/Dream-Technologies-PLC/telebirr_laravel_plus/issues",
+    "source": "https://github.com/Dream-Technologies-PLC/telebirr_laravel_plus"
+  },
+  "authors": [
+    {
+      "name": "Dream Technologies PLC",
+      "homepage": "https://dreamtech.et"
+    }
+  ],
+  "require": {
+    "php": "^8.1",
+    "illuminate/contracts": "^10.0|^11.0|^12.0",
+    "illuminate/http": "^10.0|^11.0|^12.0",
+    "illuminate/routing": "^10.0|^11.0|^12.0",
+    "illuminate/support": "^10.0|^11.0|^12.0",
+    "phpseclib/phpseclib": "^3.0"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^8.0|^9.0|^10.0",
+    "phpunit/phpunit": "^10.0|^11.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "DreamTechnologies\\TelebirrLaravelPlus\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "DreamTechnologies\\TelebirrLaravelPlus\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "DreamTechnologies\\TelebirrLaravelPlus\\TelebirrLaravelPlusServiceProvider"
+      ],
+      "aliases": {
+        "Telebirr": "DreamTechnologies\\TelebirrLaravelPlus\\Facades\\Telebirr"
+      }
+    }
+  },
+  "scripts": {
+    "test": "vendor/bin/phpunit",
+    "analyse": "find src config routes tests -name '*.php' -print0 | xargs -0 -n1 php -l"
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
