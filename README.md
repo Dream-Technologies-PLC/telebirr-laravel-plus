@@ -121,7 +121,7 @@ Request:
 curl -X POST https://yourdomain.com/api/telebirr/create-order \
   -H "Content-Type: application/json" \
   -d '{
-    "title": "Peace Ride order",
+    "title": "Example order",
     "amount": "12.00"
   }'
 ```
@@ -147,7 +147,7 @@ use DreamTechnologies\TelebirrLaravelPlus\DTO\CreateOrderData;
 
 Route::post('/checkout/telebirr', function (TelebirrClient $telebirr) {
     $order = $telebirr->createOrder(new CreateOrderData(
-        title: 'Peace Ride order',
+        title: 'Example order',
         amount: '12.00',
     ));
 
