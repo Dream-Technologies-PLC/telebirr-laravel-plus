@@ -16,10 +16,18 @@ class CreateTelebirrOrderRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:512'],
             'amount' => ['required', 'numeric', 'min:0.01'],
-            'merchantOrderId' => ['sometimes', 'string', 'max:64'],
-            'notifyUrl' => ['sometimes', 'nullable', 'url', 'max:2048'],
-            'redirectUrl' => ['sometimes', 'nullable', 'url', 'max:2048'],
-            'callbackInfo' => ['sometimes', 'nullable', 'string', 'max:512'],
+            'merchantOrderId' => config('telebirr.allow_client_merchant_order_id', false)
+                ? ['sometimes', 'string', 'max:64', 'regex:/^[A-Za-z0-9_]+$/']
+                : ['prohibited'],
+            'notifyUrl' => config('telebirr.allow_client_notify_url', false)
+                ? ['sometimes', 'nullable', 'url', 'max:2048']
+                : ['prohibited'],
+            'redirectUrl' => config('telebirr.allow_client_redirect_url', false)
+                ? ['sometimes', 'nullable', 'url', 'max:2048']
+                : ['prohibited'],
+            'callbackInfo' => config('telebirr.allow_client_callback_info', false)
+                ? ['sometimes', 'nullable', 'string', 'max:512']
+                : ['prohibited'],
         ];
     }
 }

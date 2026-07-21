@@ -35,8 +35,7 @@ class TelebirrLaravelPlusServiceProvider extends ServiceProvider
         ], 'telebirr-config');
 
         if ((bool) config('telebirr.routes_enabled', true)) {
-            Route::middleware(config('telebirr.route_middleware', ['api']))
-                ->prefix(config('telebirr.route_prefix', 'api/telebirr'))
+            Route::prefix(config('telebirr.route_prefix', 'api/telebirr'))
                 ->group(__DIR__.'/../routes/telebirr.php');
         }
     }
