@@ -15,6 +15,8 @@
 * Requires callback verification and authenticated, rate-limited client routes
   by default; both remain explicitly configurable for existing applications.
 * Adds create-order and callback-verification feature tests.
+* Declares Guzzle explicitly because Laravel 10 treats the HTTP client transport
+  as an optional dependency.
 
 ## 0.1.3
 
