@@ -124,7 +124,7 @@ with:
 
 ## Existing System Integration
 
-If the Laravel app already has orders, checkout, or ride/payment tables:
+If the Laravel app already has orders, checkout, or payment tables:
 
 1. Create the local order first.
 2. Call Telebirr create-order.

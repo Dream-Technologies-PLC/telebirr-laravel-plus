@@ -17,7 +17,7 @@ class TelebirrSignerTest extends TestCase
             'sign_type' => 'SHA256WithRSA',
             'timestamp' => '1700000000',
             'biz_content' => [
-                'title' => 'Ride',
+                'title' => 'Example item',
                 'total_amount' => '12.00',
                 'empty' => '',
             ],
@@ -26,7 +26,7 @@ class TelebirrSignerTest extends TestCase
         ]);
 
         $this->assertSame(
-            'method=payment.preorder&nonce_str=abc&timestamp=1700000000&title=Ride&total_amount=12.00',
+            'method=payment.preorder&nonce_str=abc&timestamp=1700000000&title=Example item&total_amount=12.00',
             $raw,
         );
     }

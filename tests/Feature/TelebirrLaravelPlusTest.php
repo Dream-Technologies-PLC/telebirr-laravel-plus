@@ -28,14 +28,14 @@ class TelebirrLaravelPlusTest extends TestCase
         config()->set('telebirr.fabric_app_id', 'fabric-app-id');
         config()->set('telebirr.app_secret', 'backend-secret');
         config()->set('telebirr.merchant_app_id', 'merchant-app-id');
-        config()->set('telebirr.merchant_code', '772770');
+        config()->set('telebirr.merchant_code', '900001');
         config()->set('telebirr.private_key', $this->privateKey);
         config()->set('telebirr.private_key_path', null);
         config()->set('telebirr.notify_url', 'https://merchant.example/api/telebirr/notify');
         config()->set('telebirr.redirect_url', 'merchantapp://payment-return');
         config()->set('telebirr.business_type', 'BuyGoods');
         config()->set('telebirr.trade_type', 'Cross-App');
-        config()->set('telebirr.payee_identifier', '772770');
+        config()->set('telebirr.payee_identifier', '900001');
         config()->set('telebirr.payee_identifier_type', '04');
         config()->set('telebirr.payee_type', '5000');
         config()->set('telebirr.verify_ssl', true);
@@ -64,7 +64,7 @@ class TelebirrLaravelPlusTest extends TestCase
         });
 
         $order = app(TelebirrClient::class)->createOrder(new CreateOrderData(
-            title: 'Driver wallet deposit',
+            title: 'Example order',
             amount: '125.50',
             extra: [
                 'appid' => 'untrusted-app-id',
@@ -78,7 +78,7 @@ class TelebirrLaravelPlusTest extends TestCase
         $this->assertTrue($order->success);
         $this->assertSame('PREPAY123', $order->prepayId);
         $this->assertSame(
-            'TELEBIRR$BUYGOODS$772770$125.50$PREPAY123$120m',
+            'TELEBIRR$BUYGOODS$900001$125.50$PREPAY123$120m',
             $order->receiveCode,
         );
 
@@ -93,7 +93,7 @@ class TelebirrLaravelPlusTest extends TestCase
                 && $request['sign_type'] === 'SHA256WithRSA'
                 && $request['biz_content']['notify_url'] === 'https://merchant.example/api/telebirr/notify'
                 && $request['biz_content']['appid'] === 'merchant-app-id'
-                && $request['biz_content']['merch_code'] === '772770'
+                && $request['biz_content']['merch_code'] === '900001'
                 && $request['biz_content']['total_amount'] === '125.50'
                 && $request['biz_content']['custom_reference'] === 'SAFE123';
         });
