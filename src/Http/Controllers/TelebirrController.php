@@ -67,17 +67,48 @@ class TelebirrController extends Controller
     public function notify(Request $request): JsonResponse
     {
         $payload = $request->all();
+        if ($payload === []) {
+            $decoded = json_decode((string) $request->getContent(), true);
+            $payload = is_array($decoded) ? $decoded : [];
+        }
+
+        try {
+            $notification = $this->telebirr->verifyNotification($payload);
+        } catch (TelebirrException $exception) {
+            Log::channel(config('telebirr.log_channel') ?: config('logging.default'))
+                ->warning('Telebirr notify callback verification failed', [
+                    'code' => $exception->telebirrCode,
+                    'message' => $exception->getMessage(),
+                ]);
+
+            return $this->notifyResponse(false);
+        }
 
         Log::channel(config('telebirr.log_channel') ?: config('logging.default'))
             ->info('Telebirr notify callback received', [
-                'payload' => $payload,
+                'merchant_order_id' => $notification->merchantOrderId,
+                'payment_order_id' => $notification->paymentOrderId,
+                'transaction_id' => $notification->transactionId,
+                'status' => $notification->status,
+                'signature_status' => $notification->signatureStatus,
             ]);
 
-        event(new TelebirrNotificationReceived($payload));
+        if (! $notification->accepted || $notification->merchantOrderId === null) {
+            return $this->notifyResponse(false);
+        }
 
+        event(new TelebirrNotificationReceived($payload, $notification));
+
+        return $this->notifyResponse(true);
+    }
+
+    private function notifyResponse(bool $success): JsonResponse
+    {
         return response()->json([
-            'success' => true,
-            'message' => 'processed',
-        ]);
+            'success' => $success,
+            'result' => $success ? 'SUCCESS' : 'FAIL',
+            'code' => $success ? '0' : '1',
+            'msg' => $success ? 'Success' : 'Failed',
+        ], 200);
     }
 }

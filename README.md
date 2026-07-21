@@ -24,7 +24,9 @@ Use this Laravel package on your backend. Use the Flutter package only to open t
 - Creates InApp orders.
 - Returns `receiveCode` for Flutter.
 - Provides query-order support.
-- Provides notify callback route.
+- Verifies notify callback signatures when Telebirr's callback public key is configured.
+- Normalizes callback identifiers, amount, currency, and payment status.
+- Supports private keys as protected files, inline PEM, or base64 key bodies.
 - Keeps secrets away from Flutter.
 - Supports testbed and production environments.
 
@@ -84,7 +86,10 @@ TELEBIRR_APP_SECRET=your_app_secret
 TELEBIRR_MERCHANT_APP_ID=your_merchant_app_id
 TELEBIRR_SHORT_CODE=your_business_short_code
 TELEBIRR_PRIVATE_KEY_PATH=/absolute/path/to/storage/app/private/telebirr/private_key.pem
+TELEBIRR_PUBLIC_KEY_PATH=/absolute/path/to/storage/app/private/telebirr/callback_public_key.pem
+TELEBIRR_CALLBACK_SIGNATURE_REQUIRED=true
 TELEBIRR_NOTIFY_URL=https://yourdomain.com/api/telebirr/notify
+TELEBIRR_CLIENT_ROUTE_MIDDLEWARE=api|auth:sanctum|throttle:30,1
 TELEBIRR_VERIFY_SSL=true
 ```
 
@@ -96,6 +101,24 @@ storage/app/private/telebirr/private_key.pem
 
 Never place the private key in `public/`.
 
+For platforms that inject secrets at runtime, `TELEBIRR_PRIVATE_KEY` also
+accepts a PEM value, escaped newlines, or the base64 key body. A protected file
+or secret-manager mount is preferred because it avoids storing a long key in
+the process environment.
+
+To verify callbacks, configure the callback-verification public key supplied by
+Telebirr. This is not your merchant private key:
+
+```env
+TELEBIRR_PUBLIC_KEY_PATH=/absolute/path/to/storage/app/private/telebirr/callback_public_key.pem
+TELEBIRR_CALLBACK_SIGNATURE_REQUIRED=true
+```
+
+Callback signatures are required by default. Set
+`TELEBIRR_CALLBACK_SIGNATURE_REQUIRED=false` only when Telebirr has not
+provided its callback public key. In that temporary mode, always confirm
+payment through `queryOrder` before fulfilling an order or crediting a wallet.
+
 ## Routes
 
 Routes are registered automatically:
@@ -104,6 +127,14 @@ Routes are registered automatically:
 POST /api/telebirr/create-order
 POST /api/telebirr/query-order
 POST /api/telebirr/notify
+```
+
+Protect the client routes in production while keeping the Telebirr callback
+publicly reachable:
+
+```env
+TELEBIRR_CLIENT_ROUTE_MIDDLEWARE=api|auth:sanctum
+TELEBIRR_NOTIFY_ROUTE_MIDDLEWARE=api|throttle:60,1
 ```
 
 Change the route prefix:
@@ -125,6 +156,7 @@ Request:
 ```bash
 curl -X POST https://yourdomain.com/api/telebirr/create-order \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer USER_TOKEN" \
   -d '{
     "title": "Example order",
     "amount": "12.00"
@@ -165,6 +197,7 @@ Route::post('/checkout/telebirr', function (TelebirrClient $telebirr) {
 ```bash
 curl -X POST https://yourdomain.com/api/telebirr/query-order \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer USER_TOKEN" \
   -d '{
     "merchantOrderId": "1778141110976"
   }'
@@ -174,7 +207,8 @@ Use query-order when the Flutter callback is delayed, the user closes the app, o
 
 ## Handle Notify Callback
 
-The built-in notify route logs the callback and dispatches:
+The built-in notify route validates and safely logs callback metadata, then
+dispatches:
 
 ```php
 DreamTechnologies\TelebirrLaravelPlus\Events\TelebirrNotificationReceived
@@ -187,11 +221,28 @@ use DreamTechnologies\TelebirrLaravelPlus\Events\TelebirrNotificationReceived;
 use Illuminate\Support\Facades\Event;
 
 Event::listen(TelebirrNotificationReceived::class, function ($event) {
-    // Store $event->payload, then confirm final status with queryOrder.
+    $notification = $event->notification;
+
+    if (!$notification?->accepted || !$notification->isCompleted()) {
+        return;
+    }
+
+    $order = YourOrder::where('merchant_order_id', $notification->merchantOrderId)
+        ->firstOrFail();
+
+    if (!$notification->matches($order->merchant_order_id, $order->amount, $order->currency)) {
+        return;
+    }
+
+    // Query Telebirr, verify the returned status and amount, then update your
+    // order once inside a database transaction with duplicate protection.
 });
 ```
 
-For final payment confirmation, prefer backend `notify_url` plus `queryOrder`.
+Never credit a wallet from the Flutter SDK result alone. Use the callback as a
+signal, verify merchant order ID, amount, and currency against your own record,
+then confirm final state with backend `queryOrder`. Make the final update
+idempotent so duplicate callbacks cannot credit twice.
 
 ## Security Rules
 
@@ -206,6 +257,10 @@ Keep these on Laravel only:
 - notify_url verification
 
 Flutter should receive only `receiveCode`, `merchantOrderId`, and safe UI status fields.
+
+The built-in create-order endpoint accepts amount and title for demonstration.
+For production purchases, use your own authenticated controller, load the price
+from your database, and pass that server-owned amount to `CreateOrderData`.
 
 ## Testbed And Production
 

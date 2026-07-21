@@ -11,6 +11,7 @@ final class TelebirrOrder
         public readonly ?string $code,
         public readonly string $message,
         public readonly array $raw = [],
+        public readonly ?string $prepayId = null,
     ) {
     }
 
@@ -22,6 +23,7 @@ final class TelebirrOrder
             'receiveCode' => $this->receiveCode,
             'code' => $this->code,
             'message' => $this->message,
+            'prepayId' => $this->prepayId,
             'raw' => $this->raw,
         ];
     }
