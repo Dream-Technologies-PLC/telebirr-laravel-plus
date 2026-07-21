@@ -22,10 +22,12 @@ Before changing code, ask the developer for these values:
 - Merchant App ID.
 - Business Short Code.
 - App Secret storage location.
-- Private key file location.
+- Private key secret/file location.
+- Telebirr callback public key location, if provided.
 - Public HTTPS notify URL for production.
 - Existing order/payment model names.
 - Existing checkout route or controller.
+- Server-owned source for order amount and currency.
 - Whether built-in package routes should be used or custom app routes are preferred.
 
 Also confirm:
@@ -33,6 +35,7 @@ Also confirm:
 - Organization and product contract are approved in the Ethio Telecom developer portal.
 - The private key is stored outside `public/`.
 - The backend will persist local order/payment status.
+- Wallet/order fulfillment will be idempotent and require backend verification.
 - Flutter will only receive `receiveCode` and safe order fields.
 
 ## Developer Actions Before AI Starts
@@ -77,11 +80,22 @@ TELEBIRR_APP_SECRET=your_app_secret
 TELEBIRR_MERCHANT_APP_ID=your_merchant_app_id
 TELEBIRR_SHORT_CODE=your_business_short_code
 TELEBIRR_PRIVATE_KEY_PATH=/absolute/private/path/private_key.pem
+TELEBIRR_PUBLIC_KEY_PATH=/absolute/private/path/telebirr_callback_public_key.pem
+TELEBIRR_CALLBACK_SIGNATURE_REQUIRED=true
 TELEBIRR_NOTIFY_URL=https://yourdomain.com/api/telebirr/notify
+TELEBIRR_CLIENT_ROUTE_MIDDLEWARE=api|auth:sanctum|throttle:30,1
 TELEBIRR_VERIFY_SSL=true
 ```
 
 Store the private key outside `public/`.
+
+Callback verification is required by default. The public key must be the
+callback-verification key supplied by Telebirr, not the merchant private key:
+
+```env
+TELEBIRR_PUBLIC_KEY_PATH=/absolute/private/path/telebirr_callback_public_key.pem
+TELEBIRR_CALLBACK_SIGNATURE_REQUIRED=true
+```
 
 ## Built-In Routes
 
@@ -116,8 +130,9 @@ If the Laravel app already has orders, checkout, or ride/payment tables:
 2. Call Telebirr create-order.
 3. Save `merchantOrderId` with the local order.
 4. Return `receiveCode` to Flutter.
-5. On notify callback, update the local order status.
-6. Use query-order when callback is delayed or payment state is unclear.
+5. On notify callback, verify signature and match order ID, amount, and currency.
+6. Query Telebirr before fulfilling the order or crediting a wallet.
+7. Update the local order once inside a transaction with duplicate protection.
 
 For custom checkout controllers, inject the client:
 
@@ -144,7 +159,8 @@ Listen for:
 DreamTechnologies\TelebirrLaravelPlus\Events\TelebirrNotificationReceived
 ```
 
-Use that event to update app-specific order/payment records.
+Read the event's typed `notification`, reject unaccepted or mismatched data,
+then query Telebirr before updating app-specific order/payment records.
 
 ## Security Rules
 
@@ -154,7 +170,9 @@ Use that event to update app-specific order/payment records.
 - Use HTTPS for production `TELEBIRR_NOTIFY_URL`.
 - Use `TELEBIRR_VERIFY_SSL=true` in production.
 - Do not trust Flutter callback as final payment confirmation.
-- Confirm final payment through backend notify callback or query-order.
+- Do not trust a client-supplied amount for a production purchase.
+- Confirm final payment through a verified notify callback plus query-order.
+- Prevent duplicate callbacks from fulfilling or crediting the same order twice.
 
 ## Local Testing
 

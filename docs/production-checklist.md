@@ -8,8 +8,12 @@
 6. Set `TELEBIRR_ENV=production`.
 7. Set `TELEBIRR_VERIFY_SSL=true`.
 8. Use an HTTPS `TELEBIRR_NOTIFY_URL`.
-9. Persist `merchantOrderId` and order status in your database before returning `receiveCode`.
-10. Confirm final payment on the backend through `notify_url` or `queryOrder`.
+9. Configure Telebirr's callback public key; callback signatures are required by default.
+10. Protect create/query routes with authentication and rate-limit the public notify route.
+11. Persist `merchantOrderId`, amount, currency, and order status before returning `receiveCode`.
+12. Match callback order ID, amount, and currency against that server-owned record.
+13. Confirm final payment with `queryOrder` before fulfillment or wallet credit.
+14. Make the final database update idempotent so duplicate callbacks cannot credit twice.
 
 If Telebirr returns:
 
