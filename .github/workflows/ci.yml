@@ -10,14 +10,37 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        php-version: ['8.1', '8.2', '8.3']
-        laravel: ['10.*', '11.*', '12.*']
-        exclude:
+        include:
           - php-version: '8.1'
+            laravel: '10.*'
+            testbench: '^8.37'
+            legacy: true
+          - php-version: '8.2'
+            laravel: '10.*'
+            testbench: '^8.37'
+            legacy: true
+          - php-version: '8.3'
+            laravel: '10.*'
+            testbench: '^8.37'
+            legacy: true
+          - php-version: '8.2'
             laravel: '11.*'
-          - php-version: '8.1'
+            testbench: '^9.17'
+            legacy: true
+          - php-version: '8.3'
+            laravel: '11.*'
+            testbench: '^9.17'
+            legacy: true
+          - php-version: '8.2'
             laravel: '12.*'
+            testbench: '^10.11'
+            legacy: false
+          - php-version: '8.3'
+            laravel: '12.*'
+            testbench: '^10.11'
+            legacy: false
     steps:
       - uses: actions/checkout@v4
 
@@ -26,10 +49,22 @@ jobs:
           php-version: ${{ matrix.php-version }}
           coverage: none
 
+      # Composer 2.10 blocks EOL Laravel releases before compatibility tests run.
+      # Keep this exception isolated to the Laravel 10/11 matrix jobs.
+      - name: Permit legacy Laravel dependency resolution
+        if: matrix.legacy == true
+        run: composer config audit.block-insecure false
+
       - name: Pin Laravel
         run: composer require "illuminate/contracts:${{ matrix.laravel }}" "illuminate/http:${{ matrix.laravel }}" "illuminate/routing:${{ matrix.laravel }}" "illuminate/support:${{ matrix.laravel }}" --no-update
 
+      - name: Pin Testbench
+        run: composer require --dev "orchestra/testbench:${{ matrix.testbench }}" --no-update
+
       - run: composer validate --strict
-      - run: composer install --prefer-dist --no-interaction --no-progress
+      - run: composer update --prefer-dist --no-interaction --no-progress
+      - name: Audit supported dependencies
+        if: matrix.legacy == false
+        run: composer audit --locked
       - run: composer analyse
       - run: composer test
