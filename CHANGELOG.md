@@ -1,5 +1,7 @@
 ## 0.2.0
 
+* Adds Dream Technologies' Flutter integration and Telebirr API technical
+  guides to the top of `README.md` and `skills.md`.
 * Adds inline PEM/base64 private-key support while retaining protected key files.
 * Uses explicit SHA-256 RSA-PSS salt length for request signing.
 * Adds callback signature verification with PKCS#1 and RSA-PSS compatibility.

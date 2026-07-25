@@ -1,5 +1,8 @@
 # skills.md
 
+[Flutter integration guide](https://dreamtech.et/blog/how-to-integrate-telebirr-payment-packages) |
+[Telebirr API technical guide](https://dreamtech.et/blog/telebirr-api-integration-technical-guide)
+
 ## Best Package Description
 
 `dream-technologies/telebirr-laravel-plus` is the Laravel backend package for
